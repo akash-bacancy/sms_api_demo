@@ -1,24 +1,9 @@
 # README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
-
-Things you may want to cover:
-
-* Ruby version
-
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
+* Assumptions -
+  - For Authentication, pass auth_id as password and username as username.
+  - Count of 50 of from number is based on cache add in inbound sms for STOP messages
+  - Missing parameter error is done in single line. e.g. - "To, From - are missing" or "To - are missing"
+  - Invalid parameter error is done in singe line e.g -"To, From - are invalid" or "From - are invalid"
+  - 
 * ...
