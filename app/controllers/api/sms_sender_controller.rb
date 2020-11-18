@@ -54,19 +54,19 @@ class Api::SmsSenderController < Api::BaseController
 		from_to = Rails.cache.read(unique_ts)
 		count = Rails.cache.read(params[:from]).present? ? Rails.cache.read(params[:from]) : 0
 		if count >= 5
-			json_response({success: false, message: "limit reached for from #{params[:from]}"})
+			json_response({success: false, message: "limit reached for from #{params[:from]}"}, 400)
 			true
 		end
 	end
 
 	def update_limit
 		count = Rails.cache.read(params[:from]).present? ? Rails.cache.read(params[:from]) : 0
-		Rails.cache.write(params[:from], count+1, expires_in: 1.minute)		
+		Rails.cache.write(params[:from], count+1, expires_in: 24.hours)		
 	end
 
 	def add_from_to_cache
 		key = Time.now.to_i
-		Rails.cache.write(key, {'from': params[:from], 'to': params[:to]}, expires_in: 1.minute)
+		Rails.cache.write(key, {'from': params[:from], 'to': params[:to]}, expires_in: 4.hours)
 		unique_keys = Rails.cache.read("number_keys").present? ? Rails.cache.read("number_keys") : []
 		unique_keys.push(key) 
 		Rails.cache.write("number_keys", unique_keys)

@@ -1,10 +1,5 @@
 class Api::BaseController < ApplicationController
 
-
-  rescue_from ActionController::RoutingError do
-    json_response({ success: false, message: "URL not present."}, 405)
-  end
-
   before_action :authenticate_user!
 
 
