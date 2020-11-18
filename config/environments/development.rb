@@ -27,7 +27,7 @@ Rails.application.configure do
     config.cache_store = :null_store
   end
   
-  config.cache_store = :dalli_store
+  config.cache_store = :memory_store
   config.action_controller.perform_caching = true
 
   # Store uploaded files on the local file system (see config/storage.yml for options)
