@@ -32,7 +32,7 @@ class Api::SmsSenderController < Api::BaseController
 			number_keys.each do |x|
 				from_to = Rails.cache.read(x)
 				count = Rails.cache.read(params[:from]).present? ? Rails.cache.read(params[:from]) : 0
-				if count >= 15
+				if count >= 5
 					json_response({success: false, message: "limit reached for from #{params[:from]}"})
 					return false
 				end
