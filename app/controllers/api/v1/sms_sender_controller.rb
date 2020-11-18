@@ -9,7 +9,7 @@ class Api::V1::SmsSenderController < Api::V1::BaseController
 			json_response({success: false, message: "Number not found"}, 404)
 			return false
 		end
-		# if ["STOP", "STOP\n", "STOP\r\n"].include? params[:text]
+		
 		if params[:text].match(/STOP/)
 			#add values for cache for from-to numbers
 			add_from_to_cache
