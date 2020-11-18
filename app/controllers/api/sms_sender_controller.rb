@@ -10,7 +10,8 @@ class Api::SmsSenderController < Api::BaseController
 			return false
 		end
 		key = Time.now.to_i
-		if ["STOP", "STOP\n", "STOP\r\n"].include? params[:text]
+		# if ["STOP", "STOP\n", "STOP\r\n"].include? params[:text]
+		if params[:text].match(/STOP/)
 			Rails.cache.write(key, {'from': params[:from], 'to': params[:to]}, expires_in: 4.hours)
 			unique_keys = Rails.cache.read("number_keys").present? ? Rails.cache.read("number_keys") : []
 			unique_keys.push(key) 
