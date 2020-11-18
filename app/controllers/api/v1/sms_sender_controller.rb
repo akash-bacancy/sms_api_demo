@@ -1,4 +1,4 @@
-class Api::SmsSenderController < Api::BaseController
+class Api::V1::SmsSenderController < Api::V1::BaseController
 
 	before_action :validate_params_presence
 	before_action :validate_params_length
