@@ -9,17 +9,14 @@ class Api::SmsSenderController < Api::BaseController
 			json_response({success: false, message: "Number not found"}, 404)
 			return false
 		end
-		key = Time.now.to_i
 		# if ["STOP", "STOP\n", "STOP\r\n"].include? params[:text]
 		if params[:text].match(/STOP/)
-			Rails.cache.write(key, {'from': params[:from], 'to': params[:to]}, expires_in: 4.hours)
-			unique_keys = Rails.cache.read("number_keys").present? ? Rails.cache.read("number_keys") : []
-			unique_keys.push(key) 
-			Rails.cache.write("number_keys", unique_keys)
-			count = Rails.cache.read(params[:from]).present? ? Rails.cache.read(params[:from]) : 0
-			Rails.cache.write(params[:from], count+1, expires_in: 1.minute)
+			#add values for cache for from-to numbers
+			add_from_to_cache
+			#update limit of count for from number
+			update_limit
 		end
-		render_success_response({}, 'Inbound sms ok', 200)
+		success_response 'Inbound'
 	end
 
 	def outbound_sms
@@ -31,48 +28,76 @@ class Api::SmsSenderController < Api::BaseController
 		if number_keys.present?
 			number_keys.each do |x|
 				from_to = Rails.cache.read(x)
-				count = Rails.cache.read(params[:from]).present? ? Rails.cache.read(params[:from]) : 0
-				if count >= 5
-					json_response({success: false, message: "limit reached for from #{params[:from]}"})
-					return false
-				end
-				return false if validate_outbound_sms(from_to) == false
+
+				#updae unique keys after expire
+				number_keys.delete(x) if from_to.blank?
+				Rails.cache.write('number_keys', number_keys)
+				return false if check_sms_limit?(x)
+				return false if validate_outbound_sms?(from_to)
 			end
-			render_success_response({}, 'Outbound sms ok', 200)
+			success_response "Outbound"
 		else
-			render_success_response({}, 'Outbound sms ok', 200)
+			success_response "Outbound"
 		end
 	end
 
-	def validate_outbound_sms from_to
-		if (from_to[:from] == params[:from] && from_to[:to] == params[:to])
-			json_response({success: false, message: "sms from #{from_to[:from]} to #{from_to[:to]} blocked by STOP request"})
-			false
+	def validate_outbound_sms?(from_to)
+		if from_to.present?
+			if (from_to[:from] == params[:from] && from_to[:to] == params[:to])
+				json_response({success: false, message: "sms from #{from_to[:from]} to #{from_to[:to]} blocked by STOP request"}, 400)
+				true
+			end
 		end
+	end
+
+	def check_sms_limit?(unique_ts)
+		from_to = Rails.cache.read(unique_ts)
+		count = Rails.cache.read(params[:from]).present? ? Rails.cache.read(params[:from]) : 0
+		if count >= 5
+			json_response({success: false, message: "limit reached for from #{params[:from]}"})
+			true
+		end
+	end
+
+	def update_limit
+		count = Rails.cache.read(params[:from]).present? ? Rails.cache.read(params[:from]) : 0
+		Rails.cache.write(params[:from], count+1, expires_in: 1.minute)		
+	end
+
+	def add_from_to_cache
+		key = Time.now.to_i
+		Rails.cache.write(key, {'from': params[:from], 'to': params[:to]}, expires_in: 1.minute)
+		unique_keys = Rails.cache.read("number_keys").present? ? Rails.cache.read("number_keys") : []
+		unique_keys.push(key) 
+		Rails.cache.write("number_keys", unique_keys)
 	end
 
 
 	private
 
 	def validate_params_presence
-		a = []
-		%w( from to text ).each{ |key| a.push(key) unless params[key].present? }
-		if a.present?
-			json_response({success: false, message: "#{a.map(&:humanize).join(', ')} - are missing"})
+		missing_params = []
+		%w( from to text ).each{ |key| missing_params.push(key) unless params[key].present? }
+		if missing_params.present?
+			json_response({success: false, message: "#{missing_params.map(&:humanize).join(', ')} - are missing"}, 400)
 			return false
 		end
 	end
 
 	def validate_params_length
-		a = []
-		%w(from to).each{ |key| a.push(key) unless params[key].to_s.length.between?(6,16) }
-		if a.present?
-			json_response({success: false, message: "#{a.map(&:humanize).join(', ')} - are invalid"})
+		invalid_params = []
+		%w(from to).each{ |key| invalid_params.push(key) unless params[key].to_s.length.between?(6,16) }
+		if invalid_params.present?
+			json_response({success: false, message: "#{invalid_params.map(&:humanize).join(', ')} - are invalid"}, 400)
 			return false
 		end	
 	end
 
 	def find_number(num)
 		PhoneNumber.find_by(number: num)
+	end
+
+	def success_response message
+		render_success_response({}, "#{message} sms ok", 201)
 	end
 end

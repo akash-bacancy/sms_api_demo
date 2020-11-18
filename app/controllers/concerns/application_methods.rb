@@ -10,8 +10,7 @@ module ApplicationMethods
   def render_success_response(resources = {}, message = '', status = 200, meta = {})
     json_response({
                     success: true,
-                    message: message,
-                    data: resources
+                    message: message
                   }, status)
   end
 

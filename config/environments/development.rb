@@ -17,7 +17,7 @@ Rails.application.configure do
   if Rails.root.join('tmp', 'caching-dev.txt').exist?
     config.action_controller.perform_caching = true
 
-    config.cache_store = :memory_store
+    config.cache_store = :file_store, "/home/tanay/WWW/bacancy/demo/api_demo/tmp/cache/"
     config.public_file_server.headers = {
       'Cache-Control' => "public, max-age=#{2.days.to_i}"
     }
@@ -27,7 +27,7 @@ Rails.application.configure do
     config.cache_store = :null_store
   end
   
-  config.cache_store = :memory_store
+  config.cache_store = :file_store, "/home/tanay/WWW/bacancy/demo/api_demo/tmp/cache/"
   config.action_controller.perform_caching = true
 
   # Store uploaded files on the local file system (see config/storage.yml for options)
