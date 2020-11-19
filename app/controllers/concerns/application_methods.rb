@@ -18,9 +18,4 @@ module ApplicationMethods
     render json: JsonResponse.new(options), status: status
   end
 
-
-  def single_serializer
-    ActiveModelSerializers::SerializableResource
-  end
-
 end
