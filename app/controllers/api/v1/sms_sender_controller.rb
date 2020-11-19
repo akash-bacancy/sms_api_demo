@@ -44,6 +44,8 @@ class Api::V1::SmsSenderController < Api::V1::BaseController
     if from_to.present? && (from_to[:from] == params[:from] && from_to[:to] == params[:to])
       json_response({success: false, message: "sms from #{from_to[:from]} to #{from_to[:to]} blocked by STOP request"}, 400)
       true
+    else
+      false
     end
   end
 
