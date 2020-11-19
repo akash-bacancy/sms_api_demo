@@ -3,6 +3,7 @@ class Api::V1::SmsSenderController < Api::V1::BaseController
   before_action :validate_params_presence
   before_action :validate_params_length
 
+  LIMIT = 50
   
   def inbound_sms
     unless find_number(params[:to])
@@ -26,36 +27,34 @@ class Api::V1::SmsSenderController < Api::V1::BaseController
     end
     number_keys = Rails.cache.read('number_keys')
     if number_keys.present?
-      number_keys.each do |x|
-        from_to = Rails.cache.read(x)
+      number_keys.each do |time|
+        from_to = Rails.cache.read(time)
 
-        #updae unique keys after expire
-        number_keys.delete(x) if from_to.blank?
+        #update unique keys after expire
+        number_keys.delete(time) if from_to.blank?
         Rails.cache.write('number_keys', number_keys)
-        return false if check_sms_limit?(x)
+        return false if check_sms_limit?(time)
         return false if validate_outbound_sms?(from_to)
       end
-      success_response "Outbound"
-    else
-      success_response "Outbound"
     end
+    success_response "Outbound"
   end
 
   def validate_outbound_sms?(from_to)
-    if from_to.present?
-      if (from_to[:from] == params[:from] && from_to[:to] == params[:to])
-        json_response({success: false, message: "sms from #{from_to[:from]} to #{from_to[:to]} blocked by STOP request"}, 400)
-        true
-      end
+    if from_to.present? && (from_to[:from] == params[:from] && from_to[:to] == params[:to])
+      json_response({success: false, message: "sms from #{from_to[:from]} to #{from_to[:to]} blocked by STOP request"}, 400)
+      true
     end
   end
 
   def check_sms_limit?(unique_ts)
     from_to = Rails.cache.read(unique_ts)
     count = Rails.cache.read(params[:from]).present? ? Rails.cache.read(params[:from]) : 0
-    if count >= 5
+    if count >= LIMIT
       json_response({success: false, message: "limit reached for from #{params[:from]}"}, 400)
       true
+    else
+      false
     end
   end
 
