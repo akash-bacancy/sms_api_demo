@@ -24,7 +24,7 @@ RSpec.describe "Api::V1::SmsSenders", type: :request do
 
     context "with invalid parameters" do
       before do
-        post '/api/v1/inbound/sms', params: { :from => '61871112931', :to => '61871112939', :text => 'Hello, world'},headers: { :password => "20S0KPNOIM", :username => "azr1" }
+        post '/api/v1/inbound/sms', params: { :from => '1212', :to => '1212', :text => 'Hello, world'},headers: { :password => "20S0KPNOIM", :username => "azr1" }
       end
       it 'returns a 400 bad request status' do
         expect(response).to have_http_status(:bad_request)
