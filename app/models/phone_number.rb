@@ -1,8 +1,8 @@
 class PhoneNumber < ApplicationRecord
 
-	#associations
+  #associations
   belongs_to :account
 
-	#validations
-	validates :number, length: {minimum: 6, maximum: 16}
+  #validations
+  validates :number, length: {minimum: 6, maximum: 16}
 end
